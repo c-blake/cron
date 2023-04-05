@@ -91,8 +91,10 @@ So, that is what this `cron` library does.[^7]
 
 Jobs written with `cron` are in fact usually very low overhead - on the order of
 100 parts per billion of one CPU (much like `kslog`).  I have not done so, but I
-suspect this could be made even lower by "faking the future" to the tests in a
-batch to compute much longer sleeps.[^8]
+suspect this could be made even lower without compromising Turing completeness
+by "faking the future" to tests in a batch to compute much longer sleeps.[^8]
+This would, however, break jobs that reach out to dynamic system state, e.g. the
+presence of files, to decide if they run (which cronds do not even allow).
 
 Time Zones
 ----------
