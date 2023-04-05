@@ -129,7 +129,9 @@ more a question for TUHS.
 
 [^2]: Well, and a demon for the system as well.
 
-[^3]: Famous last words.  And right here is "somewhere".
+[^3]: Famous last words.  And right here is "somewhere".  Also, by this I mean
+for outright crond-tab replacement, not the zillions of async frameworks with
+their various internal work schedulers/timer systems.
 
 [^4]: While Nim does make for a compact syntax for this use case, I use hardly
 anything that could not be done with C preprocessor macros or facilities in
