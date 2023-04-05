@@ -32,8 +32,8 @@ in my `rc` scripts for my regular user.  I would guess systemd has some story.
 Some Niceties
 =============
 There are basic syntax niceties.  These are best understood by just looking at
-`jobsE0.nim`.  Among these are `sysly` to do `runPat` over the monthly, weekly,
-and daily system job directories for the root demon.
+[`jobsE0.nim`](examples/jobsE0.nim).  Among these are `sysly` to do `runPat`
+over the monthly, weekly, and daily system job directories for the root demon.
 
 Compile-time Checked Ranges
 ---------------------------
@@ -48,8 +48,8 @@ however.)
 While this cannot prevent you from accidentally running a job every minute, it
 can prevent a lot of other dumb mistakes.
 
-Re-compile/updates with `crup.sh`
----------------------------------
+Re-compile/updates with [`crup.sh`](crup.sh)
+--------------------------------------------
 One thing `crontab` does is tell the cron demon to re-read job configs.  That
 functionality is replaced here by either the provided `crup.sh` or some similar
 device of your own creation.  Basically, `cron.nim` programs just re-exec when
