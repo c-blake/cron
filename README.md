@@ -1,14 +1,26 @@
 Overview
 ========
+When things break at 3am, instead of having to figure out what
+```
+0,6 3 * 3-6 */5 act
+```
+means in a config file, you can instead read a *whole program*:
+```Nim
+import cron; loop y,mo,d, h,m, w: # Runs EVERY minute
+  J w in {Sat,Sun} and mo==Mar and h in 3.H..6.H and m mod 5.M==0: "act"
+```
+
+Background
+==========
 The whole `cron` system design has accumulated much complexity that is no longer
 needed and was maybe never a great idea - from a setuid-root (or cron) crontab
 to manage job files, to demons running as root changing UIDs and hopefully not
-leaking anything, to bespoke syntaxes for specifying periodicity.  Even a
-spartan busybox crond/tab is 1200 lines of C.[^1]
+leaking anything, to bespoke syntaxes for specifying periodicity.  Even spartan
+busybox crond/tab is 1200 lines of C.[^1]
 
-Instead of all that, I give you `cron`: cron in Nim with its core only about 56
-non-space/comment lines, 12 lines for bonus/quality of life & a 20 line shell
-script to update & install new versions of your periodic tasks.  This is a
+Instead of all that, I give you `cron`: cron in Nim with its core only ~60
+non-space / comment lines, 12 bonus/quality of life lines & a 20 line shell
+script to update & install new versions of a periodic runner.  This is a
 simplification along the lines of [kslog](https://github.com/c-blake/kslog).
 
 ***The key idea is re-cast the cron problem to be "a library to make writing a
@@ -18,8 +30,8 @@ simple to publish anywhere).[^3]
 
 Such a demon just runs as a regular, unprivileged user all the time.  It can be
 written with a fully Turing complete programming language and any library that
-makes a main loop and "run now" time tests and launch activity easy.  Indeed,
-you can ***write Nim code rather than scripts*** for your actions.[^4]
+eases a main loop, "run now?" tests and job launch easy.  Indeed, you can
+***write Nim code rather than scripts*** for your actions.[^4]
 
 If your system/sysadmin provides no way to launch user demons at boot then you
 may need to launch it yourself.  One traditional way for unprivileged users to
@@ -39,18 +51,13 @@ program jobs, see `J`.
 
 Compile-time Checked Ranges
 ---------------------------
-Using a Nim distinct range[0..23] for "hours" prevents you from successfully
+Using a Nim `distinct range[0..23]` for "hours" prevents you from successfully
 compiling a program with dumb mistakes in numbers.  Similar ideas are enforced
-on the other common time fields.  The only cost is writing ".H" after using an
-hour.  This also prevents mistakes if you mismatch fields in a tuple, such as
-`(m,h) == (0.H, 30.M)`.  Similar comments apply to month/weekday enums or days
-of the month.  (No calendar of which months have how many days is done,
-however.)
-
-While this cannot prevent you from accidentally running a job every minute, it
-can prevent a lot of other dumb mistakes.  Personally, I prefer the explicit
-names of fields and units to having to remember "which column is which" or
-always put a comment to that effect in traditional crontab entries.
+on the other common time fields.  The only cost is writing `.H` after using an
+hour.  This also prevents mistakes if you mismatch fields in tuples, such as
+`(m, h) == (0.H, 30.M)`.  Similar comments apply to month/weekday enums or days
+of the month.  (No calendar of days in each month is done, however.)  This will
+not stop you from accidentally running jobs each loop (an intended use case).
 
 Re-compile/updates with [`crup.sh`](crup.sh)
 --------------------------------------------
@@ -76,9 +83,9 @@ While one *can* put cron jobs files under version control and use the crontab
 program to manage such, this careful activity "feels" more "natural" with actual
 source code in a prog.lang.  This is a more higher order aspect, of course.
 
-Spread/Jitter
+Desync/Jitter
 -------------
-A more subtle one is the `cron.spread` variable.  One hazard I have run into
+A more subtle one is the `cron.jitter` variable.  One hazard I have run into
 unaddressed by most `cron`s is that of "load spikes".  Essentially, just one
 centralized demon (without even a natural desync of process scheduling) waking
 up every minute and launching various activity for various users spikes system
@@ -90,8 +97,8 @@ activity.  This advice is probably as old as exponential back off, but just to
 give a concrete example the
 [`certbot`](https://stackoverflow.com/questions/41535546/how-do-i-schedule-the-lets-encrypt-certbot-to-automatically-renew-my-certificat)
 guys were recommending it.  However, it is less costly to have `cron.loop` just
-sleep by an extra random amount, and it is best to default to a non-zero amount.
-So, that is what this `cron` library does.[^7]
+sleep by extra random amounts, and it is best to default to `>0`.  So, that is
+what this `cron` library does.[^7]
 
 Jobs written with `cron` are in fact usually very low overhead - on the order of
 100 parts per billion of one CPU (much like `kslog`).  I have not done so, but I
@@ -139,7 +146,7 @@ their various internal work schedulers/timer systems.
 [^4]: While Nim does make for a compact syntax for this use case, I use hardly
 anything that could not be done with C preprocessor macros or facilities in
 Python or many PLs.  In fact, the first version of this system was in ANSI C and
-barely any larger than the Nim.
+barely any larger than the Nim.  Also, `fork` is much cheaper than `fork&exec`.
 
 [^5]: If you miss the full `crontab -e` experience you can always put a "vim
 jobsXme.nim" at the top of crup.sh. ;-)
@@ -149,8 +156,9 @@ less](https://suckless.org/) philosophy of `st` or `dwm` where you just edit a
 header file to configure things.  Here the library makes it such that the entire
 program is often not even a whole page.
 
-[^7]: If you prefer "more precise" scheduling, just set `cron.spread = 0` in
-your own cron-like programs.
+[^7]: If you prefer "more precise" scheduling, just set `cron.jitter = 0` in
+your own cron-like programs.  This is a rare case where controlled jitter is
+often desirable, not a bug. :)
 
 [^8]: While the same amount of total calculation would happen, CPU caching and
 other effects might mean up to 10X less actual time/power consumption done in a

@@ -5,14 +5,15 @@ putEnv "HOME", HOME     # This may seem terse, but it is any full Nim program
 putEnv "PATH", HOME & "/bin:/usr/local/bin:/usr/sbin:/sbin:/usr/bin:/bin"
 
 cron.utc = false  # true => UTC time; Use any lib you want to convert test specs
-cron.spread = 3   # Lower sleep jitter from default to 2 seconds
+cron.jitter = 3   # Lower sleep jitter from default to 3 seconds
+cron.tmFmt  = "%Y/%m/%d-%H:%M:%S %Z: " # change time format for log (note space)
 
 # WHEN,WHAT&WHY cron.loop (which runs EVERY MINUTE) (mostly) sorted by frequency
 loop y,mo,d, h,m, w:                             # Idents can be changed
   Do("mFile"): writeFile "/tmp/m." & $m.int, ""  # Arbitrary Nim code ~every min
   J   (h,m) ==     ( 0.H, 2.M): setClock         # Desync if in||to not Bug NIST
   sysly mo,d, h,m, w                             # Sys Mly/Wly/Dly jobs FOR ROOT
-  J m.int mod 15 == 7: "every-15-on-the-7"       # 4 times/hour
+  J m mod 15.M == 7: "every-15-on-the-7"         # 4 times/hour
   J   (h,m) ==      (0.H, 0.M): "train to GA"    # Daily
   J (w,h,m) == (Sat, 3.H, 1.M): "exec fstrim /"  # Keep flash mem writes fast
   J (w,h,m) == (Sat, 3.H,55.M): "xfs_fsr /dev/X" # Keep XFS writes on HDDs fast

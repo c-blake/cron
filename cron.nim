@@ -1,24 +1,28 @@
 import std/[os, posix, random]; export putEnv
 proc csys(cmd: cstring): cint {.importc:"system",header:"stdlib.h",discardable.}
+template brop(op, T) = # BorrowRelationalOp
+  proc op*(a, b: T): bool {.borrow.}
 
 type WeekDay* = enum Sun=0, Mon, Tue, Wed, Thu, Fri, Sat
 type Month* = enum Jan=0, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec
-type H* = distinct range[0..23]; proc `==` *(a, b: H): bool {.borrow.}
-type M* = distinct range[0..59]; proc `==` *(a, b: M): bool {.borrow.}
-type D* = distinct range[1..31]; proc `==` *(a, b: D): bool {.borrow.}
+type H* = distinct range[0..23]; brop `==`,H; brop `<=`,H; brop `<`,H
+type M* = distinct range[0..59]; brop `==`,M; brop `<=`,M; brop `<`,M
+type D* = distinct range[1..31]; brop `==`,D; brop `<=`,D; brop `<`,D
+proc `mod`*[T:Weekday|Month|H|M|D](a, b: T): int = a.int mod b.int # Nicer EVERY
 
-const HOME* {.strdefine.} = "/u/user"   ## up.sh sets to the building user
+const HOME* {.strdefine.} = "/u/user"   ## crup.sh sets to the building user
 const null* {.strdefine.} = "/dev/null" ## I put in /n -> /dev/null symlinks
 const n* = " <"&null&">"&null&" 2>&1"   ## /dev/null stdin, stdout, stderr
 var utc* = false                        ## Use gmtime_r for both test & logs
-var spread*: range[0..30] = 6           ## Jitter sleeps over this many seconds
+var jitter*: range[0..30] = 6           ## Add up to this many sec of jitter
+var tmFmt* = "%Y-%m-%d %H:%M:%S %Z: "   ## strftime(2) format for logs
 
 template gT(ts, tm) =
   discard clock_gettime(CLOCK_REALTIME, ts)
   if utc: discard gmtime_r(ts.tv_sec, tm)
   else: discard localtime_r(ts.tv_sec, tm)
 
-proc lg(tm: var Tm; msg: cstring; fmt: cstring="%Y-%m-%d %H:%M:%S %Z: ") =
+proc lg(tm: var Tm; msg: cstring; fmt=tmFmt) =
   var b: array[4096, char]              # Time stamped log; Len capped @4096B
   var n = strftime(cast[cstring](b[0].addr), b.sizeof.int, fmt, tm); if n<0: n=0
   let m = min(msg.len, b.sizeof - n - 1)              # Both time stamps & log
@@ -47,11 +51,11 @@ template loop*(yr, mo,d, hr,mn, wd, body) =     ## See an example for use
 
   var ts, slp, left: Timespec
   while true:
-    discard clock_gettime(CLOCK_REALTIME, ts)   # Sleep until next min - 1 sec
+    discard clock_gettime(CLOCK_REALTIME, ts)   # Sleep until next loop boundary
     slp.tv_sec  = Time(60 - ts.tv_sec.int mod 60 - 1)
     slp.tv_nsec = if ts.tv_nsec > 0: 1_000_000_000 - ts.tv_nsec else: 0
-    if spread > 0:                              # Add spread*1e9 random ns
-      slp.tv_nsec += rand(spread*1_000_000_000)
+    if jitter > 0:                              # Add jitter*1e9 random ns
+      slp.tv_nsec += rand(jitter*1_000_000_000)
       slp.tv_sec   = Time(slp.tv_sec.int + slp.tv_nsec div 1_000_000_000)
       slp.tv_nsec  = slp.tv_nsec mod 1_000_000_000
     discard nanosleep(slp, left); gT ts, tm     # Sleep, then refresh time
@@ -62,7 +66,7 @@ template loop*(yr, mo,d, hr,mn, wd, body) =     ## See an example for use
     let mn {.used.} = (if tm.tm_sec > 55: tm.tm_min + 1 else: tm.tm_min).M
     let wd {.used.} = tm.tm_wday.WeekDay
     tm.tm_sec = 0.cint                  # Clamp second to 0 for log msgs easy to
-    body                                # correlate w/jobs in spite of randSleep
+    body                                #..correlate w/jobs in spite of jitter.
 
 # This block sets up re-exec on SIGHUP for updates
 let av {.importc: "cmdLine".}: cstringArray # nonLib Unix; importc simple & fast
@@ -82,3 +86,4 @@ template sysly*(mo,d, hr,mn, wd) =      ## System mly/wly/dly jobs as root
 
 #Qs: Loop over skipped minutes on time jumps (susp-resume)? {But - time storms!}
 # Sleep more by pre-compute next day/week of sleeps w/body to a lgRun run=false?
+# Best to allow `cron.period=300`->Any sec(|even ns)? Need better rounding logic
