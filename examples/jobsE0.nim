@@ -1,3 +1,4 @@
+when not declared(writeFile): import std/syncio
 import cron # [1,2)am reRun;[2,3)am skip => DO NOT USE [1,3)am if Sun in Mar|Nov
 
 putEnv "HOME", HOME     # This may seem terse, but it is any full Nim program
