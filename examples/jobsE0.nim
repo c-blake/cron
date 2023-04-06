@@ -19,7 +19,7 @@ loop y,mo,d, h,m, w:                             # Idents can be changed
   J (d,h,m) == (1.D, 4.H, 1.M): "emaint sync -a" # Monthly pull from G2
   if h.int mod 4 == 0 and m == 9.M: r "something" # Every 4th hr on the 9th min
   if (mo,d,h,m) == (Jan,1.D,0.H,0.M):
-    run "HappyNY </dev/null>>/var/log/HappyNY &"
+    run "HappyNY </dev/null>>/var/log/HappyNY &", "Annual Log Job Name"
 
 # If you have a holiday/business day lib/file then you could import that & do:
 #   J bizDayKind.isa(y,mo,d) and (h,m)==(0.H,9.M): "myJob"

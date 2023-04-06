@@ -1,5 +1,5 @@
 import std/[os, posix, random]; export putEnv
-proc csys(cmd: cstring): cint {.importc: "system", header: "stdlib.h".}
+proc csys(cmd: cstring): cint {.importc:"system",header:"stdlib.h",discardable.}
 
 type WeekDay* = enum Sun=0, Mon, Tue, Wed, Thu, Fri, Sat
 type Month* = enum Jan=0, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec
@@ -27,12 +27,13 @@ proc lg(tm: var Tm; msg: cstring; fmt: cstring="%Y-%m-%d %H:%M:%S %Z: ") =
   discard write(2.cint, b[0].addr, n + m + 1)         #..since exiting is bad.
 
 template lgDo(tm: var Tm; msg: cstring, job) = lg tm, msg; job
-proc lgRun(tm: var Tm; job: cstring) = lgDo tm, job: discard csys(job)
+proc lgRun(tm: var Tm; job: cstring; msg: cstring="") =
+  lgDo tm, (if not msg.isNil and msg[0]!='\0': msg else: job): csys job
 
 template loop*(yr, mo,d, hr,mn, wd, body) =     ## See an example for use
   var tm: Tm
 
-  proc run(x: string) = lgRun tm, x             # The 5 Basic Actions
+  proc run(x: string, msg="") = lgRun tm, x,msg # The 5 Basic Actions
   proc r(x: string) = run "(" & x & ")" & n & b # Two common cases;SERI>|<AL
   proc runPat(p: string) {.used.} = run "for job in "&p&"; do $job "&n&"; done"
   template J(cond, x) {.used.} = (if cond: r x) # `J` for job; THE common case
