@@ -95,20 +95,19 @@ So, that is what this `cron` library does.[^7]
 
 Jobs written with `cron` are in fact usually very low overhead - on the order of
 100 parts per billion of one CPU (much like `kslog`).  I have not done so, but I
-suspect this can be made even lower without compromising Turing completeness by
-"faking the future" to tests in a batch to compute much longer sleeps.[^8] This
-would, however, break jobs that reach out to dynamic system state, e.g. file
-presence, to decide if they run (which cronds do not even allow).
+suspect this can be shrunk without compromising Turing completeness by "faking
+the future" to tests in a batch to compute much longer sleeps.[^8] This would,
+however, break jobs that reach out to dynamic system state, e.g. file presence,
+to decide if they run (which cronds do not even allow).
 
 Time Zones
 ----------
-Even more subtle than jitter/desynchronization is the never ending morass of
-time zones.  If you like, you can just set `cron.utc = true` to use UTC for
-everything.  If you have a Nim lib you like to convert to local zones then you
-can engage that as inline code right in your tests (in Nim with probably some
-type conversions to `int`).  There is no new specification language to learn -
-only function calls/lib access in Nim (or if you rewrite this in your PL of
-choice).
+More subtle than jitter/desynchronization is the unending saga of time zones.
+If you like, you can just set `cron.utc = true` to use UTC for everything.  If
+you have a Nim lib you like to convert to local zones then you can engage that
+as inline code right in your tests (in Nim with probably some type conversions
+to `int`).  There is no new specification language to learn - only proc calls /
+lib access in Nim (or if you rewrite this in your PL of choice).
 
 Missing Things
 ==============
@@ -122,11 +121,11 @@ to a file, it will probably just get put to the launching demon's fds, like a
 wrapper program, it is better practice to have your jobs redirect their output.
 
 `cron.nim` *does* make it easy to redirect to /dev/null.  The `J` job `template`
-does this by default, for example.  But if you have somewhere you want things to
-go, like `/var/log/HappyNY` in the example program, you can just do that.  Or,
-if a sysadmin does not let you put things in `/var/log`, but only where you have
-a disk quota, like `$HOME/log/`, then you can direct it there.  Or if that is a
-network filesystem, `/var/tmp/$ME/log`.  Or wherever.
+does this by default, for example.  If you have somewhere you want things to go,
+like `/var/log/HappyNY` in the example program, you can just do that.  Or, if a
+sysadmin doesn't let you put things in `/var/log`, but only where you have a
+disk quota, like `$HOME/log/`, you can direct it there.  Or if that is a net FS
+then `/var/tmp/$ME/log`.  Or wherever.
 
 [^1]: I can only speculate why the original cron system was so complex - that is
 more a question for TUHS.
