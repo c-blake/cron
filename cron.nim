@@ -10,7 +10,6 @@ type D* = distinct range[1..31]; proc `==` *(a, b: D): bool {.borrow.}
 const HOME* {.strdefine.} = "/u/user"   ## up.sh sets to the building user
 const null* {.strdefine.} = "/dev/null" ## I put in /n -> /dev/null symlinks
 const n* = " <"&null&">"&null&" 2>&1"   ## /dev/null stdin, stdout, stderr
-const b* = "&"                          ## Brief `&b` append for In B)ackground
 var utc* = false                        ## Use gmtime_r for both test & logs
 var spread*: range[0..30] = 6           ## Jitter sleeps over this many seconds
 
@@ -26,7 +25,14 @@ proc lg(tm: var Tm; msg: cstring; fmt: cstring="%Y-%m-%d %H:%M:%S %Z: ") =
   copyMem b[n].addr, msg[0].addr, m; b[n + m] = '\n'  #..here are best effort
   discard write(2.cint, b[0].addr, n + m + 1)         #..since exiting is bad.
 
-template lgDo(tm: var Tm; msg: cstring, job) = lg tm, msg; job
+template lgDo(tm: var Tm; msg: cstring, job) =
+  lg tm, msg; var p: Pid
+  if (p = fork(); p == -1): lg(tm, "fork failed")
+  elif p.int==0: job; quit() # Run job in a kid; SIGCHLD Policy blocks zombies.
+  else: discard              # Parent returns so long jobs do not block loop.
+var saNZ = Sigaction(sa_flags: SA_NOCLDWAIT or SA_NOCLDSTOP)
+discard sigaction(SIGCHLD, saNZ)  # Let our kids live/die on their own terms.
+
 proc lgRun(tm: var Tm; job: cstring; msg: cstring="") =
   lgDo tm, (if not msg.isNil and msg[0]!='\0': msg else: job): csys job
 
@@ -34,7 +40,7 @@ template loop*(yr, mo,d, hr,mn, wd, body) =     ## See an example for use
   var tm: Tm
 
   proc run(x: string, msg="") = lgRun tm, x,msg # The 5 Basic Actions
-  proc r(x: string) = run "(" & x & ")" & n & b # Two common cases;SERI>|<AL
+  proc r(x: string) = run "(" & x & ")" & n     # Two common cases;SERI>|<AL
   proc runPat(p: string) {.used.} = run "for job in "&p&"; do $job "&n&"; done"
   template J(cond, x) {.used.} = (if cond: r x) # `J` for job; THE common case
   template Do(msg: cstring, act) {.used.} = lgDo tm, msg, act
@@ -55,8 +61,8 @@ template loop*(yr, mo,d, hr,mn, wd, body) =     ## See an example for use
     let hr {.used.} = tm.tm_hour.H      # Below rounds for exact user tests
     let mn {.used.} = (if tm.tm_sec > 55: tm.tm_min + 1 else: tm.tm_min).M
     let wd {.used.} = tm.tm_wday.WeekDay
-    tm.tm_sec = 0.cint                  # Clamp second to 0 for clean log msgs
-    body
+    tm.tm_sec = 0.cint                  # Clamp second to 0 for log msgs easy to
+    body                                # correlate w/jobs in spite of randSleep
 
 # This block sets up re-exec on SIGHUP for updates
 let av {.importc: "cmdLine".}: cstringArray # nonLib Unix; importc simple & fast
@@ -76,4 +82,3 @@ template sysly*(mo,d, hr,mn, wd) =      ## System mly/wly/dly jobs as root
 
 #Qs: Loop over skipped minutes on time jumps (susp-resume)? {But - time storms!}
 # Sleep more by pre-compute next day/week of sleeps w/body to a lgRun run=false?
-#XXX Add a bg() helper to fork() calls in kid & *not* wait in parent jobs demon
