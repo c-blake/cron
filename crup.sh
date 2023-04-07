@@ -1,30 +1,30 @@
 #!/bin/sh
-# This build script replaces `cron -e`. You just edit whichever .nim file has
-# your jobs & run this ./crup.sh to compile, install & SIGHUP the program.  Run
-# as root to update system jobs demon.  Demon must still be launched at boot
-# however is apt for your system, e.g. from /etc/local.d/local.start | etc.
+if [ $# -lt 2 -o $# -gt 3 ]; then
+    cat <<EOF
+Usage:
+  [n=/dev/null] [nimc='nim c'] $0 DEST_DIR JOBS_PROG [/path/to/cron.nim]
 
-[ -e cron.nim ] || {
-  echo "Update script must run in the same directory as cron.nim source files."
+This build script replaces \`cron -e\`. You edit whichever .nim file has jobs &
+point this at the destination directory, the binary exec file, and optionally
+cron.nim itself.  This script will, if necessary, compile, install & SIGHUP the
+program, but otherwise exit cleanly.  Demons must still be launched at boot
+however is apt for your system, e.g. from /etc/local.d/local.start | etc.
+
+This only works on Linux right now (since \`procs\` only works on Linux).
+EOF
   exit 1
-}
+fi
+dst="$1"; j="$2"
 set -e
-: ${h:="`hostname`"}                    # Let user say h=X to override
-: ${n:="/dev/null"}                     # Let user say n=/n to override
-: ${nimc:="nim c"}                      # Let user say n=/n to override
+: ${n:="/dev/null"}                             # User can n=/n to override
+: ${nimc:="nim c"}                              # Or user can nimc="nim c .."
+if [ $# -gt 2 ]; then                           # Be like `make` 2-ways
+  [ "$dst/$j" -nt "$j.nim" -a "$dst/$j" -nt "$3" ] &&
+    { echo "$j is up to date."; exit 0; }
+else [ "$dst/$j" -nt "$j.nim" ] && { echo "$j is up to date."; exit 0; }
+fi
 
-H="$(echo $h | tr a-z A-Z | head -c1)"  # First letter capitalized
-u="$(id -u)"                            # uid of invoking process
-
-case "$u" in                            # Use $u to set jobs name $j & $dst
-  0) j="jobs${H}0"       ; dst="/usr/local/bin" ;;
-  *) j="jobs${H}$LOGNAME"; dst="$HOME/bin"      ;; esac
-
-[ "$dst/$j" -nt "$j.nim" ] && [ "$dst/$j" -nt cron.nim ] && { # Be like `make`
-  echo "$j is up to date."; exit 0
-}
-$nimc -d:HOME="$HOME" -d:null="$n" -d:danger $j  # Compile the jobs program
-
-install -cvm755 "$j" "$dst"             # Copy binary exec into place
-rm -f "$j"                              # Remove built copy
-procs find -ak -shup "$j"               # Make any running version re-exec
+$nimc -d:HOME="$HOME" -d:null="$n" -d:danger $j # Compile jobs program
+install -cvm755 "$j" "$dst"                     # Copy bin.exec into dst
+procs find --actions=kill -shup "$j"            # Make running version re-exec
+rm -f "$j"                                      # Nix built; Doesn't clear cache
