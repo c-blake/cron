@@ -1,8 +1,8 @@
 #!/bin/sh
-# This build script replaces "cron -e". You just edit whichever .nim file & run
-# this ./up.sh to compile, install & SIGHUP the program.  Run as root to update
-# system jobs demon.  You probably want the whole directory under VC.  Launch at
-# boot however is apt for your system, e.g. from /etc/local.d/local.start | etc.
+# This build script replaces `cron -e`. You just edit whichever .nim file has
+# your jobs & run this ./crup.sh to compile, install & SIGHUP the program.  Run
+# as root to update system jobs demon.  Demon must still be launched at boot
+# however is apt for your system, e.g. from /etc/local.d/local.start | etc.
 
 [ -e cron.nim ] || {
   echo "Update script must run in the same directory as cron.nim source files."
