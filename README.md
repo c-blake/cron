@@ -18,7 +18,7 @@ to manage job files, to demons running as root changing UIDs and hopefully not
 leaking anything, to bespoke syntaxes for specifying periodicity.  Even spartan
 busybox crond/tab is 1200 lines of C.[^1]
 
-Instead of all that, I give you `cron`: cron in Nim with its core only ~60
+Instead of all that, I give you `cron`: cron in Nim with its core only ~70
 non-space / comment lines, 12 bonus/quality of life lines & a 20 line shell
 script to update & install new versions of a periodic runner.  This is a
 simplification along the lines of [kslog](https://github.com/c-blake/kslog).
