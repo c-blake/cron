@@ -1,0 +1,9 @@
+#!/usr/bin/gnuplot
+set xrange [0:0.2]
+set grid
+set xlabel "wake up ms into 1ms period"
+set term png size 1920,1080 font "Helvetica,20"
+set output "wakeUps.png"
+plot "<awk '{print($1%1e6)/1e6}' d/ld1|sort -n"u 1:($0/59962)w st lw 3 t"Load1",\
+     "<awk '{print($1%1e6)/1e6}' d/ld2|sort -n"u 1:($0/59978)w st lw 3 t"Load2",\
+     "<awk '{print($1%1e6)/1e6}' d/ld3|sort -n"u 1:($0/59998)w st lw 3 t"Load3"
