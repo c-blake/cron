@@ -6,7 +6,7 @@ When things break at 3am, instead of having to figure out what
 ```
 means in a config file, you can instead read a *whole program*:
 ```Nim
-import cron; loop y,mo,d, h,m, w: # Runs EVERY minute
+import cron; loop y,mo,d, h,m,s,ns, w: # Runs EVERY minute
   J w in {Sat,Sun} and mo==Mar and h in 3.H..6.H and m mod 5.M==0: "act"
 ```
 
