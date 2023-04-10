@@ -1,5 +1,6 @@
 when not declared(doAssert): import std/assertions
 import std/[os, posix, random]; export putEnv
+when defined(release): randomize()
 proc csys(cmd: cstring): cint {.importc:"system",header:"stdlib.h",discardable.}
 template brop(op, T) = # BorrowRelationalOp
   proc op*(a, b: T): bool {.borrow.}
