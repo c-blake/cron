@@ -29,16 +29,16 @@ template cT(ts, tm) =                                       #..conversion.
   discard if ut: gmtime_r(ts.tv_sec, tm) else: localtime_r(ts.tv_sec, tm)
 proc Ns*(ts: Timespec): int64 = ts.tv_sec.int64*sec + ts.tv_nsec
 proc Ts*(ns: int64): Timespec = (result.tv_sec = Time(ns div sec);
-                                 result.tv_nsec =     ns mod sec)
+              result.tv_nsec = typeof(result.tv_nsec)(ns mod sec))
 
 proc lg(tm: var Tm; ts: Timespec; msg: cstring) =     # 3) Logging
   if lgW: (var w = $ts.Ns; discard write(2.cint, w[0].addr, w.len))
   var b: array[4096, char]              # Time stamped log; Len capped @4096B
   var n = strftime(cast[cstring](b[0].addr), b.sizeof.int, tF.cstring, tm)
   if n < 0: n = 0
-  let m = min(msg.len, b.sizeof - n - 1)              # Both time stamps & logWr
-  copyMem b[n].addr, msg[0].addr, m; b[n + m] = '\n'  #..here are best effort
-  discard write(2.cint, b[0].addr, n + m + 1)         #..since exiting is bad.
+  let m = min(msg.len, b.sizeof - n - 1)                   # Timestamps & logWr
+  copyMem b[n].addr, msg[0].unsafeAddr, m; b[n + m] = '\n' #..are best effort
+  discard write(2.cint, b[0].addr, n + m + 1)              #..since exit is bad.
 
 # 4) Runner helpers
 template bkgd(tm, ts, job) =      # Runs job in a detached kid so long jobs do
