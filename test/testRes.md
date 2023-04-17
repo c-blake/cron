@@ -7,9 +7,9 @@ I get a 99.9% worst lag into the period of about 0.149 ms.  Under more moderate
 load (nim `build_all.sh` w/firefox & UHD video playing) with `chrt` & `taskset`,
 I saw 99.9% samples under 30% off cycle, though the tail is heavy enough that
 under 10/60e3 made it all the way through the 1ms period (some all the way to
-the end!).  Thinking it odd load *helped* the median, I ran as competing work 3
-"burn-cpu" programs which do no syscalls, IO, or mem ops (they just loop in an
-adder) to offer more load to the scheduler.  This run yielded very narrow misses
+the end!).  Seeing load *helps* the median & thinking full freq CPUS a likely
+cause, I ran as competing work 3 "burn-cpu" instances (which just loop in an
+adder doing no syscalls, IO, or mem ops).  This run yielded very narrow misses
 (Median overshoot only 6.37us w/IQR 267 ns; Max of 60,000 samples only 10us!).
 Here's a plot of this (very basic) evaluation:[^3]
 ![wakeUps](https://raw.githubusercontent.com/c-blake/cron/main/test/wakeUps.png)
