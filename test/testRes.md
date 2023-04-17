@@ -56,5 +56,5 @@ but that is intended load spreading/desync, not a system limitation.  Numerical
 coincidence of 1e-3/15e-6=~60 makes it amusing to speculate if anyone tried
 cranking down 1970s crond to 1 second sleeps with similar results.  Ask TUHS.
 
-[^6] Also, strftime does not support sub-seconds, but you can do e.g. `tmFmt =
+[^6]: Also, strftime does not support sub-seconds, but you can do e.g. `tmFmt =
 "W %Y/%m/%d-%H:%M:%S."; Do(align($ns.int, 9, '0') & " myThing")`.
