@@ -43,7 +43,8 @@ are SIGSTOPed (but I was too lazy to unplug the network).
 6-way superscalar, ~10 core sense.
 
 [^3]: An early lesson in all systems programming is that more contention yields
-a lot more complexity in system dynamics.
+a lot more complexity in system dynamics, however here Load3 is both heavier &
+simpler than Load2.
 
 [^4]: If you think `at` can save you, that is usually implemented *on top* of
 cron, not via `sleep;run` - since cron will (usually) come up on reboots.  I
