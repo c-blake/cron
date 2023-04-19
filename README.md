@@ -156,9 +156,9 @@ less](https://suckless.org/) philosophy of `st` or `dwm` where you just edit a
 header file to configure things.  Here the library makes it such that the entire
 program is often not even a whole page.
 
-[^7]: If you prefer "more precise" scheduling, just set `cron.jitter = 0` in
-your own cron-like programs.  This is a rare case where controlled jitter is
-often desirable, not a bug. :)
+[^7]: If you prefer "more precise" scheduling, just set `cron.jitter=0` in your
+own cron-like programs.  In this case, jitter gives an oft desired, controlled
+load spreading.
 
 [^8]: While the same amount of total calculation would happen, CPU caching and
 other effects might mean up to 10X less actual time/power consumption done in a
