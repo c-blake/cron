@@ -75,13 +75,14 @@ template loop*(yr, mo,d, hr,mn,sc,ns, wd, body) = ## See an example for use
 
   # BASIC ACTIONS; Client `if`-guards in all cases but `J` which automates that
   proc run(j: string, msg="") {.used.} = lgRun tm, ts, j, msg
-  proc r(j: string) {.used.} = run "("&j&")"&n  # Two Common Cases
+  proc r(j: string) {.used.} = run "("&j&")"&n  # Two Common Cases: Solo & Dir
   proc runPat(p: string) {.used.} = run "for j in "&p&"; do $j "&n&"; done"
                                                 # ';' not '&' =>SERI^AL above
   template DoSync(msg: cstring, act) {.used.} = lgDo tm, ts, msg, bg=false, act
   template Do(msg: cstring, act) {.used.} = lgDo tm, ts, msg, bg=true, act
 
-  template J(cond, j) {.used.} = (if cond: r j) # `J` for Job; THE common case
+  template J(cond, cmd) {.used.} = (if cond: r cmd)           # `J` for Job
+  template j(cond, cmd) {.used.} = (if cond: r "exec " & cmd) # Above w/exec
 
   # Set client code immutable copies; Note also: Magic "^W" =>Log Wake-Up times.
   ut = utc; let jit = jitter; let per = period
