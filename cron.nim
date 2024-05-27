@@ -116,7 +116,7 @@ discard sigaction(SIGHUP, sa)   # NODEFER is critical for a >=2 re-installs
 const rdateSet* = "rdate -s -u time.nist.gov;hwclock --systohc" ## |init.d/rdate
 
 template sysly*(mo,d, hr,mn, wd) =      ## System mly/wly/dly jobs as root
-  if (hr,mn) == ( 0.H,45.M):            # Every day @0h:45m do jobs for packages
+  if (hr,mn) == ( 0.H,30.M):            # Every day @0h:30m do jobs for packages
     if d  == 1.D: runPat "/etc/cron.monthly/*"  # Q: What is normal cron order
     if wd == Sat: runPat "/etc/cron.weekly/*"   #    of mly/wly/dly dirs?
     runPat "/etc/cron.daily/*"
