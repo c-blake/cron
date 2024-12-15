@@ -15,7 +15,7 @@ type H* = distinct range[0..23];  bbop `==`,H; bbop `<=`,H; bbop `<`,H
 type M* = distinct range[0..59];  bbop `==`,M; bbop `<=`,M; bbop `<`,M
 type S* = distinct range[0..59];  bbop `==`,S; bbop `<=`,S; bbop `<`,S
 type N* = distinct range[0..sec]; bbop `==`,N; bbop `<=`,N; bbop `<`,N
-proc `mod`*[T: Weekday|Month|H|M|D](a,b: T): int = a.int mod b.int # Nicer EVERY
+proc `mod`*[T: WeekDay|Month|H|M|D](a,b: T): int = a.int mod b.int # Nicer EVERY
 
 const HOME* {.strdefine.} = "/u/user"         ## crup.sh sets to user building
 const null* {.strdefine.} = "/dev/null"       ## I like /n -> /dev/null symlinks
