@@ -1,3 +1,4 @@
+{.push warning[ProveInit]:off, warning[Uninit]:off.}
 when not declared(doAssert): import std/assertions
 import std/[os, posix, random]; export putEnv
 when defined(release): randomize()
