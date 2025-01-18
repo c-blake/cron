@@ -1,4 +1,4 @@
-{.warning[ProveInit]:off, warning[Uninit]:off.} # Should be verbosity:2 not 1
+{.push warning[ProveInit]:off, warning[Uninit]:off.}
 when not declared(doAssert): import std/assertions
 import std/[os, posix, random]; export putEnv
 when defined(release): randomize()
@@ -30,14 +30,14 @@ var ut, lgW: bool                             # Client immutable copies fixed at
 var tF: string                                #..loop start, but ref'd earlier.
 
 # 2) Time query & conversion
-template gT(ts) = discard clock_gettime(CLOCK_REALTIME, ts) # g)et T)ime
+template gT(ts) = discard clock_gettime(CLOCK_REALTIME, ts)
 
-template cT(ts, tm) =                                       # c)onvert T)ime
+template cT(ts, tm) =
   discard if ut: gmtime_r(ts.tv_sec, tm) else: localtime_r(ts.tv_sec, tm)
 
 proc Ns*(ts: Timespec): int64 = ts.tv_sec.int64*sec + ts.tv_nsec
 
-proc Ts*(ns: int64): Timespec = (result.tv_sec = Time(ns div sec); # T)ime s)pec
+proc Ts*(ns: int64): Timespec = (result.tv_sec = Time(ns div sec);
               result.tv_nsec = typeof(result.tv_nsec)(ns mod sec))
 
 # 3) Logging
