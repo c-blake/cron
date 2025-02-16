@@ -10,7 +10,7 @@ under 10/60e3 made it all the way through the 1ms period (some all the way to
 the end!).  Seeing load *helps* the median & thinking full freq CPUS a likely
 cause, I ran as competing work 3 "burn-cpu" instances (which just loop in an
 adder doing no syscalls, IO, or mem ops).  This run yielded very narrow misses
-(Median overshoot only 6.37us w/IQR 267 ns; Max of 60,000 samples only 10us!).
+(Median overshoot only 6.37μs w/IQR 267 ns; Max of 60,000 samples only 10μs!).
 Here's a plot of this (very basic) evaluation:[^3]
 ![wakeUps](https://raw.githubusercontent.com/c-blake/cron/main/test/wakeUps.png)
 
@@ -22,17 +22,17 @@ scheduling is out of scope, but there are surely loads that can even mess up 60s
 period wake-ups.
 
 How low can we push the period & still have this check-the-time-sleep program
-concept work?  On the 3 burn-cpus but otherwise idle system load, period=10us
-gives focused wake ups (q.99-q.01=1.2us).  *However*, they are shifted 60% (6us)
+concept work?  On the 3 burn-cpus but otherwise idle system load, period=10μs
+gives focused wake ups (q.99-q.01=1.2μs).  *However*, they are shifted 60% (6μs)
 off target wake-up.  That lag seems similar for many periods.  Thus, scheduling
-gets misleading around period=15-20us,[^5] but kernel lag calibration can maybe
-improve that to 3us given 1.2us.  One can surely play with other policies (e.g.
-chrt -d) & CPUs.  HW/kernel behavior varies under stress.  BTW, all this is
-intended only to inspire others to do their own experiments, not be the last
-word (on anything!).
+gets misleading around period=15-20μs,[^5] but kernel lag calibration can maybe
+improve that to 3μs with a 1.2μs request.  One can surely play with policies
+(e.g. chrt -d, real-time Linux) & CPUs.  HW/kernel behavior varies even more
+under stress than just ordinarily.  BTW, all this is intended only to inspire
+others to do their own experiments, not be the last word (on anything!).
 
 Of course, it's rare to need periodic cron-like work at even 1s boundaries, let
-alone 3us.  If you do change `period`, be careful that time conditions all use
+alone 3μs.  If you do change `period`, be careful that time conditions all use
 period-rounded values or tests will never match.[^6]
 
 [^1]: This is all on a 4-core i7-6700k at 4.7GHz with no hyper-threading with an
