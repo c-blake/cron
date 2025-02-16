@@ -9,16 +9,17 @@ means in a config file, you can instead read a *whole program*:
 import cron; loop y,mo,d, h,m,s,ns, w: # Runs EVERY minute
   J w in {Sat,Sun} and mo==Mar and h in 3.H..6.H and m mod 5.M==0: "act"
 ```
+Which you prefer is clearly a question of taste.  To each his own.
 
 Background
 ==========
-The whole `cron` system design has accumulated much complexity that is no longer
-needed and was maybe never a great idea - from a setuid-root (or cron) crontab
-to manage job files, to demons running as root changing UIDs and hopefully not
+The whole `cron` system design has accumulated much no longer needed complexity
+that was maybe never a great idea - from a setuid-root(or cron) crontab to
+manage job files, to demons running as root changing UIDs and hopefully not
 leaking anything, to bespoke syntaxes for specifying periodicity.  Even spartan
 busybox crond/tab is 1200 lines of C.[^1]
 
-Instead of all that, I give you `cron`: cron in Nim with its core only ~70
+Instead of all that, I give you `cron`: cron in Nim with its core only ~75
 non-space / comment lines, 12 bonus/quality of life lines & a 20 line shell
 script to update & install new versions of a periodic runner.  This is a
 simplification along the lines of [kslog](https://github.com/c-blake/kslog).
@@ -81,7 +82,7 @@ Version Control
 ---------------
 While one *can* put cron jobs files under version control and use the crontab
 program to manage such, this careful activity "feels" more "natural" with actual
-source code in a prog.lang.  This is a more higher order aspect, of course.
+source code in a prog.lang.  This is a higher order aspect, of course.
 
 Desync/Jitter
 -------------
@@ -89,23 +90,31 @@ A more subtle one is the `cron.jitter` variable.  One hazard I have run into
 unaddressed by most `cron`s is that of "load spikes".  Essentially, just one
 centralized demon (without even a natural desync of process scheduling) waking
 up every minute and launching various activity for various users spikes system
-load.  I have seen such cause UDP packet loss and even actual data loss in
-financial data systems.
+load.  I have seen such spikes cause UDP packet loss and even actual data loss
+in financial data systems.
 
 One mitigation is to add a random sleep before programs to jitter/desync system
 activity.  This advice is probably as old as exponential back off, but just to
 give a concrete example the
 [`certbot`](https://stackoverflow.com/questions/41535546/how-do-i-schedule-the-lets-encrypt-certbot-to-automatically-renew-my-certificat)
-guys were recommending it.  However, it is less costly to have `cron.loop` just
-sleep by extra random amounts, and it is best to default to `>0`.  So, that is
-what this `cron` library does.[^7]
+guys were recommending it.  However, it is also easy to generalize this idea to
+have `cron.loop` just sleep by extra random amounts of schedule jitter.  So,
+that is what this `cron` library does.[^7]
 
-Jobs written with `cron` are in fact usually very low overhead - on the order of
-100 parts per billion of one CPU (much like `kslog`).  I have not done so, but I
-suspect this can be shrunk without compromising Turing completeness by "faking
-the future" to tests in a batch to compute much longer sleeps.[^8] This would,
-however, break jobs that reach out to dynamic system state, e.g. file presence,
-to decide if they run (which cronds do not even allow).
+Overhead
+--------
+Jobs written with `cron.nim` are usually very low overhead - on the order of 100
+parts per billion of one CPU (much like `kslog`).  I haven't done so, but this
+can probably be shrunk without much loss of generality by "faking the future"
+for all tests in a `loop` in order to compute much longer equivalent sleeps.[^8]
+This duration aggregation/compiling would, however, break jobs reaching out to
+dynamic system state, e.g. file presence, to decide if they run (which cronds do
+not even allow at the scheduling level, though obviously anything can at the
+scheduled dynamic test level).
+
+In practice, when I want low overhead, I just set `cron.period = 30*60*sec` and
+schedule stuff on half-hours.  At the other end of the spectrum, one can look at
+the limits of [very rapid scheduling](test/testRes.md).
 
 Time Zones
 ----------
@@ -127,12 +136,12 @@ to a file, it will probably just get put to the launching demon's fds, like a
 /var/log/cron0 or something.  For this reason, even if you do *usually* use a
 wrapper program, it is better practice to have your jobs redirect their output.
 
-`cron.nim` *does* make it easy to redirect to /dev/null.  The `J` job `template`
-does this by default, for example.  If you have somewhere you want things to go,
-like `/var/log/HappyNY` in the example program, you can just do that.  Or, if a
-sysadmin doesn't let you put things in `/var/log`, but only where you have a
-disk quota, like `$HOME/log/`, you can direct it there.  Or if that is a net FS
-then `/var/tmp/$ME/log`.  Or wherever.
+`cron.nim` *does* make it easy to redirect job output to `/dev/null`.  The `J`
+job `template` does this by default, for example.  If you have somewhere you
+want things to go, like `/var/log/HappyNY` in the example program, you can just
+`>` that at launch.  Or, if a sysadmin doesn't let you put things in `/var/log`,
+but only where you have a disk quota, like `$HOME/log/`, you can direct it
+there.  Or if that is a net FS then `/var/tmp/$LOGNAME/jobsLog` or wherever.
 
 [^1]: I can only speculate why the original cron system was so complex - that is
 more a question for TUHS.
@@ -146,7 +155,7 @@ their various internal work schedulers/timer systems.
 [^4]: While Nim does make for a compact syntax for this use case, I use hardly
 anything that could not be done with C preprocessor macros or facilities in
 Python or many PLs.  In fact, the first version of this system was in ANSI C and
-barely any larger than the Nim.  Also, `fork` is much cheaper than `fork&exec`.
+barely larger than the Nim.  Also, `fork` is much cheaper than `fork & exec`.
 
 [^5]: If you miss the full `crontab -e` experience you can always put a "vim
 jobsXme.nim" at the top of crup.sh. ;-)
@@ -156,9 +165,8 @@ less](https://suckless.org/) philosophy of `st` or `dwm` where you just edit a
 header file to configure things.  Here the library makes it such that the entire
 program is often not even a whole page.
 
-[^7]: If you prefer "more precise" scheduling, just set `cron.jitter=0` in your
-own cron-like programs.  In this case, jitter gives an oft desired, controlled
-load spreading.
+[^7]: If you prefer "more precise" scheduling to load-spreading, just set
+`cron.jitter=0` in your own `cron.nim` programs.
 
 [^8]: While the same amount of total calculation would happen, CPU caching and
 other effects might mean up to 10X less actual time/power consumption done in a
