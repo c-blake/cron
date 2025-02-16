@@ -17,9 +17,9 @@ Here's a plot of this (very basic) evaluation:[^3]
 This makes 1ms seem "practical-ish" (though likely wasteful!).  At that rate,
 jobs demons use ~1% of 1 CPU.  Personally, I *boost* my period by 6 orders of
 magnitude to 15\*60sec.  The way `cron.nim` works currently will not run jobs if
-their time slot is missed (this is not unique to `cron.nim`).[^4]  So, longer is
-also safer.  Full eval of Linux scheduling is out of scope, but there are surely
-loads that can even mess up 60s period wake-ups.
+their time slot is missed (this is not unique to `cron.nim`).[^4]  So, longer is also safer.  Full eval of Linux
+scheduling is out of scope, but there are surely loads that can even mess up 60s
+period wake-ups.
 
 How low can we push the period & still have this check-the-time-sleep program
 concept work?  On the 3 burn-cpus but otherwise idle system load, period=10us
@@ -46,10 +46,13 @@ are SIGSTOPed (but I was too lazy to unplug the network).
 a lot more complexity in system dynamics, however here Load3 is both heavier &
 simpler than Load2.
 
-[^4]: If you think `at` can save you, that is usually implemented *on top* of
-cron, not via `sleep;run` - since cron will (usually) come up on reboots.  I
-figure if I cannot get a chrt elevated process scheduled in a small fraction of
-15 min then I almost surely have bigger worries than a cron job not running. ;)
+[^4]: Also, you rarely *want* to hibernate a laptop for a weekend and then have
+queued jobs run all at once upon de-hibernation.  Scheduled jobs, the continuity
+of time/system availability, and back logs are all in eternal tension.  If you
+think `at` can save you, that is usually implemented *on top* of cron, not via
+`sleep;run` - since cron will (usually) come up on reboots.  I figure if I
+cannot get a chrt elevated process scheduled by the OS within a small fraction
+of 15 min then I almost surely have bigger worries than a missed cron job. ;)
 
 [^5]: Of course, the jitter feature can make it misleading at *any* time scale,
 but that is intended load spreading/desync, not a system limitation.  Numerical
