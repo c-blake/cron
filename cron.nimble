@@ -1,5 +1,5 @@
 # Package
-version     = "0.9.0"
+version     = "0.9.1"
 author      = "Charles Blake"
 description = "Library to ease writing cron-like programs"
 license     = "MIT/ISC"
