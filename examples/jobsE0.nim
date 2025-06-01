@@ -24,7 +24,7 @@ cron.loop y,mo,d, h,m,s, ns, w:                  # Time idents can be changed
     runPat HOME & "/.config/cron/daily/*"        #   jobs in dir suppressing IO
   # More vanilla/typical jobs; J(COND, job) = if COND: r job
   J   (h,m) ==     ( 0.H, 2.M): rdateSet         # Desync if in||to not Bug NIST
-  sysly mo,d, h,m, w                             # Sys Mly/Wly/Dly jobs FOR ROOT
+  sysly mo,d, h,m,w, 0.H, 30.M                   # Sys Mly/Wly/Dly jobs FOR ROOT
   J m mod 15.M == 7: "every-15-at-7"             # 4 times/hour
   J   (h,m) ==      (0.H, 0.M): "train to GA"    # Daily
   J (w,h,m) == (Sat, 3.H, 1.M): "exec fstrim /"  # Keep flash mem writes fast

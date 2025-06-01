@@ -115,7 +115,7 @@ discard sigaction(SIGHUP, sa)   # NODEFER is critical for a >=2 re-installs
 # 7) Pre-defined convenience jobs for the system
 const rdateSet* = "rdate -s -u time.nist.gov;hwclock --systohc" ## |init.d/rdate
 
-template sysly*(mo,d,hr,mn,wd, hh:typed=0.H,mm:typed=30.M)=##System m/w/dly jobs
+template sysly*(mo,d,hr,mn,wd; hh:typed=0.H,mm:typed=30.M)=##System m/w/dly jobs
   if (hr, mn) == (hh, mm):          # Every day @hh:mm do /etc/cron.* jobs
     if d  == 1.D: runPat "/etc/cron.monthly/*"  # Q: What is normal cron's order
     if wd == Sat: runPat "/etc/cron.weekly/*"   #    for mly/wly/dly job dirs?
