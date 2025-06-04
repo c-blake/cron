@@ -12,18 +12,18 @@ cron.tmFmt  = "W %Y/%m/%d-%H:%M:%S %Z: " # Augmented strftime format for logs
 # WHEN: WHAT #WHY cron.loop (running EACH PERIOD).  Mostly sorted by frequency.
 # In USA [1,2)am reRun;[2,3)am skip => DO NOT USE [1,3)am if Sun in Mar|Nov
 cron.loop y,mo,d, h,m,s, ns, w:                  # Time idents can be changed
-  DoSync("echo"): echo "hi!"                     # *Sync* Nim code EACH PERIOD
-  Do("tmpF"): writeFile "/tmp/m." & $m.int, ""   # Backgnd Nim code EACH PERIOD
+  DoSync "echo": echo "hi!"                      # *Sync* Nim code EACH PERIOD
+  Do "tmpF": writeFile "/tmp/m." & $m.int, ""    # Backgnd Nim code EACH PERIOD
   if s == 30.S:                                  # Conditional bkgd job
-    Do("WILL NEVER RUN"): discard       # *UNLESS* you change period to 30*sec!
-  if (mo,d,h,m) == (Jan,1.D,0.H,0.M):            # `run` wants user IO redirects
+    Do "WILL NEVER RUN": discard        # *UNLESS* you change period to 30*sec!
+  if (mo,d, h,m) == (Jan,1.D, 0.H,0.M):          # `run` wants user IO redirects
     run "HappyNY <"&n&">/var/log/NYE 2>&1", "Annual Job Log Name"
   if h mod 4.H == 0 and m == 9.M:                # Every 4th hr on the 9th min
     r "something"                                # `r` suppresses output
-  if (h,m) == ( 0.H,30.M):                       # Every day @0h:30m, run
+  if (h,m) ==  (0.H,30.M):                       # Every day @0h:30m, run
     runPat HOME & "/.config/cron/daily/*"        #   jobs in dir suppressing IO
   # More vanilla/typical jobs; J(COND, job) = if COND: r job
-  J   (h,m) ==     ( 0.H, 2.M): rdateSet         # Desync if in||to not Bug NIST
+  J   (h,m) ==      (0.H, 2.M): rdateSet         # Desync if in||to not Bug NIST
   sysly mo,d, h,m,w, 0.H, 30.M                   # Sys Mly/Wly/Dly jobs FOR ROOT
   J m mod 15.M == 7: "every-15-at-7"             # 4 times/hour
   J   (h,m) ==      (0.H, 0.M): "train to GA"    # Daily
