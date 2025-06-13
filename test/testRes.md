@@ -7,7 +7,7 @@ I get a 99.9% worst lag into the period of about 0.149 ms.  Under more moderate
 load (nim `build_all.sh` w/firefox & UHD video playing) with `chrt` & `taskset`,
 I saw 99.9% samples under 30% off cycle, though the tail is heavy enough that
 under 10/60e3 made it all the way through the 1ms period (some all the way to
-the end!).  Seeing load *helps* the median & thinking full freq CPUS a likely
+the end!).  Seeing load *helps* the median.  Thinking full freq CPUS a likely
 cause, I ran as competing work 3 "burn-cpu" instances (which just loop in an
 adder doing no syscalls, IO, or mem ops).  This run yielded very narrow misses
 (Median overshoot only 6.37μs w/IQR 267 ns; Max of 60,000 samples only 10μs!).
