@@ -39,11 +39,11 @@ period-rounded values or tests will never match.[^6]
 nVidia GPU running Linux 6.2.8.  Idle means no X11/etc. and all system demons
 are SIGSTOPed (but I was too lazy to unplug the network).
 
-[^2]: 1ms is not unlike original cronds written in a naive 5GHz vs. 5MHz sense,
-6-way superscalar, ~10 core sense.
+[^2]: 1 ms is roughly like aboriginal cronds on 1-core non-superscalar 5MHz CPUs
+just naively scaled by 60,000X { 5GHz/5MHz\*6-way superscalar\*10 core }.
 
-[^3]: An early lesson in all systems programming is that more contention yields
-a lot more complexity in system dynamics, however here Load3 is both heavier &
+[^3]: An early lesson in all systems programming is that more contention tends
+to yield more complexity in system dynamics, however here Load3 is both heavier &
 simpler than Load2.
 
 [^4]: Also, you rarely *want* to hibernate a laptop for a weekend and then have
@@ -59,5 +59,5 @@ but that is intended load spreading/desync, not a system limitation.  Numerical
 coincidence of 1e-3/15e-6=~60 makes it amusing to speculate if anyone tried
 cranking down 1970s crond to 1 second sleeps with similar results.  Ask TUHS.
 
-[^6]: Also, strftime does not support sub-seconds, but you can do e.g. `tmFmt =
-"W %Y/%m/%d-%H:%M:%S."; Do(align($ns.int, 9, '0') & " myThing")`.
+[^6]: Also, strftime does not support sub-seconds, but you can instead do e.g.
+`tmFmt = "W %Y/%m/%d-%H:%M:%S."; Do(align($ns.int, 9, '0') & " myThing")`.
