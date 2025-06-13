@@ -115,8 +115,8 @@ can probably be shrunk without much loss of generality by "faking the future"
 for all tests in a `loop` in order to compute much longer equivalent sleeps.[^8]
 This duration aggregation/compiling would, however, break jobs reaching out to
 dynamic system state, e.g. file presence, to decide if they run (which cronds do
-not even allow at the scheduling level, though obviously anything can in dynamic
-test of what's scheduled).
+not even allow at the scheduling level, though obviously anything can exit early
+based on dynamic tests).
 
 In practice, when I want low overhead, I just set `cron.period = 30*60*sec` and
 schedule stuff on half-hours.  At the other end of the spectrum, one can look at
